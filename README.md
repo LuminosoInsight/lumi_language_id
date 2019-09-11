@@ -6,6 +6,6 @@ To run the benchmark in this repo:
 unzip data.zip
 wget https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
 wget https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.ftz
-pip install fasttext
+pip install -r requirements.txt
 python bench.py
 ```
