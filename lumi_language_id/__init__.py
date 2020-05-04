@@ -46,8 +46,8 @@ def data_file(path):
     paths_to_try = [my_location / 'data', home_location, nfs_location]
     for location in paths_to_try:
         path_to_try = location / path
-        if path.exists():
-            return str(path)
+        if path_to_try.exists():
+            return str(path_to_try)
 
     raise FileNotFoundError(f"Can't find {path!r} in any of {paths_to_try!r}")
 
