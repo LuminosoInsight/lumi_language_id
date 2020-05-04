@@ -1,3 +1,0 @@
-fasttext
-pycld2
-iso-639
