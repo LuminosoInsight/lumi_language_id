@@ -99,7 +99,7 @@ def clean_text(text):
     cleaned_text = ftfy.fix_text(text, normalization='NFKC').casefold()
 
     # Keep only letters (L), marks (M), and whitespace (Z)
-    kept_chars = [ch for ch in cleaned_text if unicodedata.category(ch) in 'LMZ']
+    kept_chars = [ch for ch in cleaned_text if unicodedata.category(ch)[0] in 'LMZ']
     cleaned_text = ''.join(kept_chars)
 
     # Remove extra whitespaces
@@ -109,7 +109,7 @@ def clean_text(text):
 
 
 class LanguageIdentifier:
-    def __init__(self, name='lid.176.bin'):
+    def __init__(self, name='lid.176.ftz'):
         """
         Create a LanguageIdentifier object that stores a loaded language-ID model and uses it
         to identify languages.
@@ -145,3 +145,17 @@ class LanguageIdentifier:
         # And then the confidence in the prediction:
         pred_confidence = confidence_struct[0]
         return (pred_language, pred_confidence)
+
+    def make_data_point(self, text):
+        """
+        Given a piece of text, convert it to an input and output that can be used to train
+        a 'tuned' classifier that re-estimates the confidence of a prediction.
+        """
+        text = clean_text(text)
+        num_spaces = text.count(' ')
+        text_length = len(text)
+        language, confidence = self.predict_language(text)
+        info = predicted_info(confidence)
+
+        return np.array([text_length, info, num_spaces]), language
+
