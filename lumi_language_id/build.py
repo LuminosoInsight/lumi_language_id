@@ -34,8 +34,9 @@ def make_input_and_output(input_gen):
 
 
 def make_estimator():
-    return MLPClassifier(activation='relu', hidden_layer_sizes=(3, 3), alpha=0.1, max_iter=1000)
+    return MLPClassifier(activation='relu', hidden_layer_sizes=(6, 6), alpha=0.1, max_iter=1000)
     # return SVC(kernel='linear', probability=True)
+
 
 def run():
     estimator = make_estimator()
