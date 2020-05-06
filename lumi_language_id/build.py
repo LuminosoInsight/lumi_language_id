@@ -2,8 +2,9 @@ import itertools
 import langcodes
 import numpy as np
 
-from lumi_language_id import LanguageIdentifier
+from lumi_language_id import LanguageIdentifier, local_data_filename
 from lumi_language_id.data_sources import twitter_gen, wiki_gen, tatoeba_gen
+from lumi_language_id.tuned import MultiLayerPerceptron
 from sklearn.neural_network import MLPClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import balanced_accuracy_score, log_loss
@@ -67,7 +68,9 @@ def run():
     print(f'Test accuracy: {model_accuracy:3.3f}')
     print(f'Log loss: {model_loss:3.3f}')
 
-    return estimator
+    coefs = estimator.coefs_
+    intercepts = estimator.intercepts_
+    MultiLayerPerceptron.save(local_data_filename('tuned.npz'), coefs, intercepts)
 
 
 if __name__ == '__main__':

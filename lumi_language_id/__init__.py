@@ -36,9 +36,8 @@ FT_LANGUAGES = [
 
 def data_file(path):
     """
-    Get a data file from a standard location.
-
-    TODO: look in _other_ standard locations, like NFS or wherever apt would put data files.
+    Get a data file from a standard location. Check a few possible locations until the file is
+    found.
     """
     my_location = Path(__file__).parent
     home_location = Path('~/.luminoso/language_id').expanduser()
@@ -50,6 +49,15 @@ def data_file(path):
             return str(path_to_try)
 
     raise FileNotFoundError(f"Can't find {path!r} in any of {paths_to_try!r}")
+
+
+def local_data_filename(path):
+    """
+    Get a path to a file in the local 'data' directory, whether or not it exists.
+    This is useful for creating such a file.
+    """
+    my_location = Path(__file__).parent
+    return my_location / 'data' / path
 
 
 def align_language_to_fasttext(language):
@@ -121,7 +129,7 @@ class LanguageIdentifier:
         with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
             self.ft_model = fasttext.load_model(data_file(name))
 
-    def predict_language(self, text):
+    def detect_language(self, text):
         """
         Predict the language of a text using fastText.
 
@@ -154,7 +162,7 @@ class LanguageIdentifier:
         text = clean_text(text)
         num_spaces = text.count(' ')
         text_length = len(text)
-        language, confidence = self.predict_language(text)
+        language, confidence = self.detect_language(text)
         info = predicted_info(confidence)
 
         return np.array([text_length, info, num_spaces]), language
