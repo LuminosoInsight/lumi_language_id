@@ -128,7 +128,7 @@ class LanguageIdentifier:
         Returns a pair of the detected language code and its confidence (from 0 to 1).
         """
         cleaned = clean_text(text)
-        prediction_struct = self.ft_model.predict(text)
+        prediction_struct = self.ft_model.predict(cleaned)
 
         # The structure returned by fastText looks like:
         # (('__label__en',), array([0.99047953]))
