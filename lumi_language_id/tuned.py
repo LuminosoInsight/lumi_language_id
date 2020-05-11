@@ -75,12 +75,26 @@ class MultiLayerPerceptron:
 
 
 class TunedLanguageIdentifier:
+    """
+    A FastText language ID classifier with another classifier on top of it, so
+    it can produce reliable probability estimates. It will refrain from
+    detecting a language if the probability of the detection being correct is
+    less than 0.5.
+    """
     def __init__(self, language_identifier: LanguageIdentifier, tuned_classifier: MultiLayerPerceptron):
         self.language_identifier = language_identifier
         self.tuned_classifier = tuned_classifier
 
     @classmethod
     def load(cls, fasttext_filename='lid.176.ftz', tuned_filename='tuned.npz'):
+        """
+        Load a TunedLanguageIdentifier from its fastText file and an .npz file
+        of the retuned classifier.
+        
+        The filenames refer to files in the `lumi_language_id/data` directory,
+        and default to a classifier that's included with the repository, so
+        `TunedLanguageIdentifier.load()` should get you a classifier.
+        """
         lid = LanguageIdentifier(fasttext_filename)
         tuned = MultiLayerPerceptron.load(data_file(tuned_filename))
         return cls(lid, tuned)
@@ -89,9 +103,10 @@ class TunedLanguageIdentifier:
         """
         Predict the language of a text using fastText.
 
-        Returns a pair of the detected language code and its probability (from 0.5 to 1).
-        If the probability we detect is less than 0.5, the detected language becomes 'und',
-        so that we're not returning an answer that's probably wrong.
+        Returns a pair of the detected language code and its probability (from
+        0.5 to 1).  If the probability we detect is less than 0.5, the detected
+        language becomes 'und', so that we're not returning an answer that's
+        probably wrong.
         """
         row, language = self.language_identifier.make_data_point(text)
         probability = self.tuned_classifier.probability(row)
