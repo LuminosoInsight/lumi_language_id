@@ -1,18 +1,14 @@
 import contextlib
 import os
-import string
 import unicodedata
-from collections import defaultdict
 from math import log2
 from pathlib import Path
 
 import fasttext
 import numpy as np
-import pandas as pd
 
 import ftfy
 import langcodes
-from langcodes import standardize_tag
 
 
 FT_LANGUAGES = [
@@ -166,4 +162,3 @@ class LanguageIdentifier:
         info = predicted_info(confidence)
 
         return np.array([text_length, info, num_spaces]), language
-
