@@ -1,18 +1,14 @@
 import contextlib
 import os
-import string
 import unicodedata
-from collections import defaultdict
 from math import log2
 from pathlib import Path
 
 import fasttext
 import numpy as np
-import pandas as pd
 
 import ftfy
 import langcodes
-from langcodes import standardize_tag
 
 
 FT_LANGUAGES = [
@@ -34,22 +30,29 @@ FT_LANGUAGES = [
 ]
 
 
-def data_file(path):
+def corpus_file(path):
     """
-    Get a data file from a standard location.
-
-    TODO: look in _other_ standard locations, like NFS or wherever apt would put data files.
+    Get a data file from a standard location. Check a few possible locations until the file is
+    found.
     """
     my_location = Path(__file__).parent
-    home_location = Path('~/.luminoso/language_id').expanduser()
-    nfs_location = Path('/nfs/mg-cache/language_id')
-    paths_to_try = [my_location / 'data', home_location, nfs_location]
+    root_location = my_location.parent
+    nfs_location = Path('/nfs/mg-cache/language_id/corpus')
+    paths_to_try = [root_location / 'corpus', nfs_location]
     for location in paths_to_try:
         path_to_try = location / path
         if path_to_try.exists():
             return str(path_to_try)
 
     raise FileNotFoundError(f"Can't find {path!r} in any of {paths_to_try!r}")
+
+
+def data_file(path):
+    """
+    Get a path to a file in the local 'data' directory.
+    """
+    my_location = Path(__file__).parent
+    return str(my_location / 'data' / path)
 
 
 def align_language_to_fasttext(language):
@@ -121,7 +124,7 @@ class LanguageIdentifier:
         with open(os.devnull, "w") as f, contextlib.redirect_stdout(f):
             self.ft_model = fasttext.load_model(data_file(name))
 
-    def predict_language(self, text):
+    def detect_language(self, text):
         """
         Predict the language of a text using fastText.
 
@@ -154,8 +157,7 @@ class LanguageIdentifier:
         text = clean_text(text)
         num_spaces = text.count(' ')
         text_length = len(text)
-        language, confidence = self.predict_language(text)
+        language, confidence = self.detect_language(text)
         info = predicted_info(confidence)
 
         return np.array([text_length, info, num_spaces]), language
-
