@@ -30,15 +30,15 @@ FT_LANGUAGES = [
 ]
 
 
-def data_file(path):
+def corpus_file(path):
     """
     Get a data file from a standard location. Check a few possible locations until the file is
     found.
     """
     my_location = Path(__file__).parent
-    home_location = Path('~/.luminoso/language_id').expanduser()
-    nfs_location = Path('/nfs/mg-cache/language_id')
-    paths_to_try = [my_location / 'data', home_location, nfs_location]
+    root_location = my_location.parent
+    nfs_location = Path('/nfs/mg-cache/language_id/corpus')
+    paths_to_try = [root_location / 'corpus', nfs_location]
     for location in paths_to_try:
         path_to_try = location / path
         if path_to_try.exists():
@@ -47,13 +47,12 @@ def data_file(path):
     raise FileNotFoundError(f"Can't find {path!r} in any of {paths_to_try!r}")
 
 
-def local_data_filename(path):
+def data_file(path):
     """
-    Get a path to a file in the local 'data' directory, whether or not it exists.
-    This is useful for creating such a file.
+    Get a path to a file in the local 'data' directory.
     """
     my_location = Path(__file__).parent
-    return my_location / 'data' / path
+    return str(my_location / 'data' / path)
 
 
 def align_language_to_fasttext(language):
