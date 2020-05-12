@@ -15,9 +15,7 @@ def get_training_data():
     The data used for training and validation comes from a labeled Twitter corpus and
     a corpus of Wikipedia article introductions.
     """
-    return make_input_and_output(
-        itertools.chain(twitter_gen(), wiki_gen())
-    )
+    return make_input_and_output(itertools.chain(twitter_gen(), wiki_gen()))
 
 
 def get_test_data():
@@ -27,9 +25,7 @@ def get_test_data():
     writing in each language -- this means they would be unrepresentative to
     train on, but make for reliable test data.
     """
-    return make_input_and_output(
-        tatoeba_gen()
-    )
+    return make_input_and_output(tatoeba_gen())
 
 
 def make_input_and_output(input_gen):
@@ -42,7 +38,7 @@ def make_input_and_output(input_gen):
     lid = LanguageIdentifier()
     for text, label in input_gen:
         row, detected_lang = lid.make_data_point(text)
-        match = (langcodes.tag_distance(label, detected_lang) <= 5)
+        match = langcodes.tag_distance(label, detected_lang) <= 5
         inputs.append(row)
         outputs.append(match)
     return np.array(inputs), np.array(outputs)
@@ -72,7 +68,9 @@ def make_estimator():
     which is absolutely wrong when the goal is to output well-tuned
     probabilities.
     """
-    return MLPClassifier(activation='relu', hidden_layer_sizes=(6, 6), alpha=0.1, max_iter=1000)
+    return MLPClassifier(
+        activation='relu', hidden_layer_sizes=(6, 6), alpha=0.1, max_iter=1000
+    )
 
 
 def run():
@@ -88,7 +86,9 @@ def run():
     # test data -- the purpose here is to show the performance of the classifier
     # on held-out data that is like the training data, while the actual
     # test data is from an entirely held-out data set (Tatoeba).
-    input_train, input_val, output_train, output_val = train_test_split(input_train, output_train, test_size=0.2)
+    input_train, input_val, output_train, output_val = train_test_split(
+        input_train, output_train, test_size=0.2
+    )
 
     # Train the estimator
     estimator.fit(input_train, output_train)
@@ -101,7 +101,7 @@ def run():
 
     # Use the trained estimator to make new predictions on the validation data.
     predictions = estimator.predict(input_val)
-    predictions_p = estimator.predict_proba(input_val)[:,1]
+    predictions_p = estimator.predict_proba(input_val)[:, 1]
 
     # Show the accuracy and log-loss of the new estimator.
     model_accuracy = balanced_accuracy_score(predictions, output_val)
@@ -112,7 +112,7 @@ def run():
     # Get the same statistics for the test data.
     input_test, output_test = get_test_data()
     predictions = estimator.predict(input_test)
-    predictions_p = estimator.predict_proba(input_test)[:,1]
+    predictions_p = estimator.predict_proba(input_test)[:, 1]
     model_accuracy = balanced_accuracy_score(predictions, output_test)
     model_loss = log_loss(output_test, predictions_p)
     print(f'Test accuracy: {model_accuracy:3.3f}')

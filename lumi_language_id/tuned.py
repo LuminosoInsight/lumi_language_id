@@ -7,6 +7,7 @@ class MultiLayerPerceptron:
     A simple implementation of an MLP classifier. This implementation has no training code, but
     can be used to run a 'frozen' classifier that was trained by scikit-learn.
     """
+
     def __init__(self, coefs, intercepts):
         self.coefs = coefs
         self.intercepts = intercepts
@@ -19,7 +20,9 @@ class MultiLayerPerceptron:
         We assume here that all layers but the last one are ReLU layers, and the last one is
         a sigmoid layer.
         """
-        for layer_num, (coefs_layer, intercepts_layer) in enumerate(zip(self.coefs, self.intercepts)):
+        for layer_num, (coefs_layer, intercepts_layer) in enumerate(
+            zip(self.coefs, self.intercepts)
+        ):
             row = row @ coefs_layer + intercepts_layer
             if layer_num < len(self.coefs) - 1:
                 # Apply ReLU activation
@@ -48,7 +51,9 @@ class MultiLayerPerceptron:
         version = 1
         n_layers = len(coefs)
         arrays = {'meta': np.array([version, n_layers])}
-        for layer_num, (coefs_layer, intercepts_layer) in enumerate(zip(coefs, intercepts)):
+        for layer_num, (coefs_layer, intercepts_layer) in enumerate(
+            zip(coefs, intercepts)
+        ):
             arrays[f'coefs_{layer_num}'] = coefs_layer
             arrays[f'intercepts_{layer_num}'] = intercepts_layer
         np.savez(filename, **arrays)
@@ -61,7 +66,9 @@ class MultiLayerPerceptron:
         arrays = np.load(filename)
         version, n_layers = arrays['meta']
         if version != 1:
-            raise NotImplementedError("This code only understands MultiLayerPerceptron version 1")
+            raise NotImplementedError(
+                "This code only understands MultiLayerPerceptron version 1"
+            )
 
         coefs = []
         intercepts = []
@@ -81,7 +88,12 @@ class TunedLanguageIdentifier:
     detecting a language if the probability of the detection being correct is
     less than 0.5.
     """
-    def __init__(self, language_identifier: LanguageIdentifier, tuned_classifier: MultiLayerPerceptron):
+
+    def __init__(
+        self,
+        language_identifier: LanguageIdentifier,
+        tuned_classifier: MultiLayerPerceptron,
+    ):
         self.language_identifier = language_identifier
         self.tuned_classifier = tuned_classifier
 

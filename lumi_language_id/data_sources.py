@@ -8,7 +8,9 @@ from lumi_language_id import corpus_file, align_language_to_fasttext
 
 
 def twitter_gen():
-    with open(corpus_file('TweetLID_corpusV2/tweetlid-test-tweets.tsv')) as twitter_file:
+    with open(
+        corpus_file('TweetLID_corpusV2/tweetlid-test-tweets.tsv')
+    ) as twitter_file:
         reader = csv.reader(twitter_file, delimiter='\t')
         for row in reader:
             # If there are multiple possibilities separated by +, take the first one
@@ -42,4 +44,3 @@ def tatoeba_gen():
             fixed_label = align_language_to_fasttext(label)
             if fixed_label != 'und':
                 yield (text, fixed_label)
-
