@@ -157,7 +157,11 @@ class LanguageIdentifier:
         text = clean_text(text)
         num_spaces = text.count(' ')
         text_length = len(text)
+        num_han_characters = 0
+        for char in text:
+            if 0x3300 <= ord(char) < 0xa000:
+                num_han_characters += 1
         language, confidence = self.detect_language(text)
         info = predicted_info(confidence)
 
-        return np.array([text_length, info, num_spaces]), language
+        return np.array([text_length, info, num_spaces, num_han_characters]), language
