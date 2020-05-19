@@ -35,13 +35,15 @@ def make_input_and_output(input_gen):
     """
     inputs = []
     outputs = []
+    labels = []
     lid = LanguageIdentifier()
     for text, label in input_gen:
         row, detected_lang = lid.make_data_point(text)
         match = langcodes.tag_distance(label, detected_lang) <= 5
         inputs.append(row)
         outputs.append(match)
-    return np.array(inputs), np.array(outputs)
+        labels.append(label)
+    return np.array(inputs), np.array(outputs), labels
 
 
 def make_estimator():
@@ -55,7 +57,7 @@ def make_estimator():
 
     There are only three input features, so we wouldn't get much advantage from
     a hidden layer size whose dimensionality is much higher than that -- but I
-    found that having 6 hidden features is advantageous. My intuition here is
+    found that having 8 hidden features is advantageous. My intuition here is
     that ReLU features must output a constant 0 below (or above) their
     intercept, while a sum of two ReLU features has the ability to vary in the
     positive or negative direction, providing another degree of freedom.
@@ -69,7 +71,7 @@ def make_estimator():
     probabilities.
     """
     return MLPClassifier(
-        activation='relu', hidden_layer_sizes=(6, 6), alpha=0.1, max_iter=1000
+        activation='relu', hidden_layer_sizes=(8, 8), alpha=0.1, max_iter=1000
     )
 
 
@@ -79,7 +81,7 @@ def run():
     classification.
     """
     estimator = make_estimator()
-    input_train, output_train = get_training_data()
+    input_train, output_train, _labels = get_training_data()
 
     # Split our two 'training' sources into training and validation. Though
     # we don't have a separate validation step -- it's treated the same as
@@ -110,13 +112,20 @@ def run():
     print(f'Log loss: {model_loss:3.3f}')
 
     # Get the same statistics for the test data.
-    input_test, output_test = get_test_data()
+    input_test, output_test, labels_test = get_test_data()
     predictions = estimator.predict(input_test)
     predictions_p = estimator.predict_proba(input_test)[:, 1]
     model_accuracy = balanced_accuracy_score(predictions, output_test)
     model_loss = log_loss(output_test, predictions_p)
     print(f'Test accuracy: {model_accuracy:3.3f}')
     print(f'Log loss: {model_loss:3.3f}')
+
+    # Show a breakdown of test set accuracy per language
+    languages = sorted(set(labels_test))
+    for lang in languages:
+        lang_filter = [label == lang for label in labels_test]
+        lang_accuracy = balanced_accuracy_score(predictions[lang_filter], output_test[lang_filter])
+        print(f'\t{lang}\t{lang_accuracy:3.3f}')
 
     # Extract the trained model and save it in a form that doesn't require
     # scikit-learn to run.
