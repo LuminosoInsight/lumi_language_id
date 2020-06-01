@@ -30,6 +30,27 @@ FT_LANGUAGES = [
 ]
 
 
+CACHED_MODEL = None
+
+def detect_language(text):
+    """
+    Get the detected language of a string, and its confidence.
+
+    This loads a TunedLanguageIdentifier (imported late to avoid circular
+    imports) the first time it's run, and stores it in a global variable.
+    This can be managed more explicitly using `TunedLanguageIdentifier.load()`
+    in `lumi_language_id.tuned`, but it helps to provide a convenient
+    top-level function here.
+    """
+    global CACHED_MODEL
+    from lumi_language_id.tuned import TunedLanguageIdentifier
+
+    if CACHED_MODEL is None:
+        CACHED_MODEL = TunedLanguageIdentifier.load()
+
+    return CACHED_MODEL.detect_language(text)
+
+
 def corpus_file(path):
     """
     Get a data file from a standard location. Check a few possible locations until the file is
