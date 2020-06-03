@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="lumi_language_id",
-    version='0.1',
+    version='0.2',
     maintainer='Robyn Speer',
     maintainer_email='rspeer@luminoso.com',
     platforms=["any"],
