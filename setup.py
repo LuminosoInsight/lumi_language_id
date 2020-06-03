@@ -5,6 +5,8 @@ setup(
     version='0.2',
     maintainer='Robyn Speer',
     maintainer_email='rspeer@luminoso.com',
+    description='For when you want fastText language identification, but you also want to believe the answers',
+    license='MIT',
     platforms=["any"],
     packages=['lumi_language_id'],
     install_requires=['fasttext', 'numpy', 'ftfy', 'langcodes >= 2'],
@@ -12,6 +14,6 @@ setup(
     # Training the tuned model requires scikit-learn, but using the model doesn't.
     extras_require={
         'train': ['scikit-learn'],
-    }
-    python_requires='>=3.5',
+    },
+    python_requires='>=3.6',
 )
