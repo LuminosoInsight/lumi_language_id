@@ -16,16 +16,16 @@ FT_LANGUAGES = [
     'bar', 'bcl', 'be', 'bg', 'bh', 'bn', 'bo', 'bpy', 'br', 'bs', 'bxr', 'ca',
     'cbk', 'ce', 'ceb', 'ckb', 'co', 'cs', 'cv', 'cy', 'da', 'de', 'diq',
     'dsb', 'dty', 'dv', 'el', 'eml', 'en', 'eo', 'es', 'et', 'eu', 'fa', 'fi',
-    'fr', 'frr', 'fy', 'ga', 'gd', 'gl', 'gn', 'gom', 'gu', 'gv', 'he', 'hi',
-    'hif', 'hr', 'hsb', 'ht', 'hu', 'hy', 'ia', 'id', 'ie', 'ilo', 'io', 'is',
-    'it', 'ja', 'jbo', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'krc', 'ku', 'kv',
-    'kw', 'ky', 'la', 'lb', 'lez', 'li', 'lmo', 'lo', 'lrc', 'lt', 'lv', 'mai',
-    'mg', 'mhr', 'min', 'mk', 'ml', 'mn', 'mr', 'mrj', 'ms', 'mt', 'mwl', 'my',
-    'myv', 'mzn', 'nah', 'nap', 'nds', 'ne', 'new', 'nl', 'nn', 'no', 'oc',
-    'or', 'os', 'pa', 'pam', 'pfl', 'pl', 'pms', 'pnb', 'ps', 'pt', 'qu', 'rm',
-    'ro', 'ru', 'rue', 'sa', 'sah', 'sc', 'scn', 'sco', 'sd', 'sh', 'si', 'sk',
-    'sl', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk',
-    'tl', 'tr', 'tt', 'tyv', 'ug', 'uk', 'ur', 'uz', 'vec', 'vep', 'vi', 'vls',
+    'fil', 'fr', 'frr', 'fy', 'ga', 'gd', 'gl', 'gn', 'gom', 'gu', 'gv', 'he',
+    'hi', 'hif', 'hr', 'hsb', 'ht', 'hu', 'hy', 'ia', 'id', 'ie', 'ilo', 'io',
+    'is', 'it', 'ja', 'jbo', 'jv', 'ka', 'kk', 'km', 'kn', 'ko', 'krc', 'ku',
+    'kv', 'kw', 'ky', 'la', 'lb', 'lez', 'li', 'lmo', 'lo', 'lrc', 'lt', 'lv',
+    'mai', 'mg', 'mhr', 'min', 'mk', 'ml', 'mn', 'mr', 'mrj', 'ms', 'mt',
+    'mwl', 'my', 'myv', 'mzn', 'nah', 'nap', 'nb', 'nds', 'ne', 'new', 'nl',
+    'nn', 'oc', 'or', 'os', 'pa', 'pam', 'pfl', 'pl', 'pms', 'pnb', 'ps', 'pt',
+    'qu', 'rm', 'ro', 'ru', 'rue', 'sa', 'sah', 'sc', 'scn', 'sco', 'sd', 'si',
+    'sk', 'sl', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th',
+    'tk', 'tr', 'tt', 'tyv', 'ug', 'uk', 'ur', 'uz', 'vec', 'vep', 'vi', 'vls',
     'vo', 'wa', 'war', 'wuu', 'xal', 'xmf', 'yi', 'yo', 'yue', 'zh'
 ]
 
@@ -78,8 +78,11 @@ def data_file(path):
 
 def align_language_to_fasttext(language):
     """
-    Given a language code, get the closest-matching language code that fastText would detect,
-    or 'und' if there is no match.
+    Given a language code, get the closest-matching normalized language code that
+    this module would detect, or 'und' if there is no match.
+
+    We don't use fastText's exact language list -- we use the CLDR normalized
+    versions of them. 'no' becomes 'nb', and 'tl' becomes 'fil'.
 
     >>> align_language_to_fasttext('fr')
     'fr'
@@ -89,11 +92,13 @@ def align_language_to_fasttext(language):
     'und'
     >>> align_language_to_fasttext('nan')
     'zh'
-    >>> align_language_to_fasttext('nb')
-    'no'
+    >>> align_language_to_fasttext('no')
+    'nb'
+    >>> align_language_to_fasttext('sh')
+    'sr'
     """
     matched_language, _dist = langcodes.closest_match(language, FT_LANGUAGES)
-    return matched_language
+    return langcodes.standardize_tag(matched_language)
 
 
 def predicted_info(confidence):
@@ -104,11 +109,11 @@ def predicted_info(confidence):
     Examples:
 
     >>> predicted_info(0.5)
-    1.
+    1.0
     >>> predicted_info(0.875)
-    3.
+    3.0
     >>> predicted_info(1.)
-    20.
+    20.0
     """
     if confidence >= 1.:
         return 20.
@@ -161,7 +166,11 @@ class LanguageIdentifier:
 
         # Extract the predicted language code from this:
         label_size = len('__label__')
-        pred_language = language_struct[0][label_size:]
+        pred_language = langcodes.standardize_tag(language_struct[0][label_size:])
+
+        # standardization of 'sh' puts a script code on Serbian, which we won't be using
+        if pred_language == 'sr-Latn':
+            pred_language = 'sr'
 
         # In the wonderful future of Python 3.9, the above would be:
         # language_struct[0].removeprefix('__label__')
@@ -183,6 +192,7 @@ class LanguageIdentifier:
             if 0x3300 <= ord(char) < 0xa000:
                 num_han_characters += 1
         language, confidence = self.detect_language(text)
+        language = langcodes.standardize_tag(language)
         info = predicted_info(confidence)
 
         return np.array([text_length, info, num_spaces, num_han_characters]), language

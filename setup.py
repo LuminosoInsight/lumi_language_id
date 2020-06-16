@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="lumi_language_id",
-    version='0.2.1',
+    version='0.3',
     maintainer='Robyn Speer',
     maintainer_email='rspeer@luminoso.com',
     description='For when you want fastText language identification, but you also want to believe the answers',
