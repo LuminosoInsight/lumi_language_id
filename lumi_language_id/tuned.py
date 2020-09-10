@@ -1,4 +1,5 @@
 import numpy as np
+import langcodes
 from lumi_language_id import LanguageIdentifier, data_file
 
 
@@ -102,7 +103,7 @@ class TunedLanguageIdentifier:
         """
         Load a TunedLanguageIdentifier from its fastText file and an .npz file
         of the retuned classifier.
-        
+
         The filenames refer to files in the `lumi_language_id/data` directory,
         and default to a classifier that's included with the repository, so
         `TunedLanguageIdentifier.load()` should get you a classifier.
@@ -119,10 +120,13 @@ class TunedLanguageIdentifier:
         0.5 to 1).  If the probability we detect is less than 0.5, the detected
         language becomes 'und', so that we're not returning an answer that's
         probably wrong.
+
+        The tag that the classifier outputs will be standardized according to
+        BCP 47 (so that, for example, 'no' becomes 'nb').
         """
         row, language = self.language_identifier.make_data_point(text)
         probability = self.tuned_classifier.probability(row)
         if probability < 0.5:
             language = 'und'
 
-        return language, probability
+        return langcodes.standardize_tag(language), probability
