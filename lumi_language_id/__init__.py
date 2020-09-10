@@ -96,6 +96,33 @@ def align_language_to_fasttext(language):
     return matched_language
 
 
+def align_language_standardized(language):
+    """
+    Given a language code, get the closest-matching language code that fastText would detect
+    (or 'und' if there is no match), then standardize it according to BCP 47 and CLDR.
+
+    The codes where this differs from align_language_to_fasttext are:
+
+    - fastText detects 'no', which is standardized to 'nb'
+    - fastText detects 'tl', which is standardized to 'fil'
+
+    >>> align_language_standardized('fr')
+    'fr'
+    >>> align_language_standardized('iw')  # old language code for Hebrew
+    'he'
+    >>> align_language_standardized('zz')  # not a language
+    'und'
+    >>> align_language_standardized('nan')
+    'zh'
+    >>> align_language_standardized('no')
+    'nb'
+    >>> align_language_standardized('tl')
+    'fil'
+    """
+    matched_language, _dist = langcodes.closest_match(language, FT_LANGUAGES)
+    return langcodes.standardize_tag(matched_language)
+
+
 def predicted_info(confidence):
     """
     Convert the estimated confidence of a language ID prediction into a number of bits of
@@ -104,11 +131,11 @@ def predicted_info(confidence):
     Examples:
 
     >>> predicted_info(0.5)
-    1.
+    1.0
     >>> predicted_info(0.875)
-    3.
+    3.0
     >>> predicted_info(1.)
-    20.
+    20.0
     """
     if confidence >= 1.:
         return 20.
